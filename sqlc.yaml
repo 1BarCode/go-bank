@@ -1,0 +1,11 @@
+version: 1
+packages:
+    - path: "./db/sqlc"
+      name: "db"
+      engine: "postgresql"
+      schema: "./db/migration/"
+      queries: "./db/query/"
+      emit_json_tags: true # use json tags to genereate structs
+      emit_prepared_queries: true # generate code to work with prepared statements
+      emit_interface: false # used to mock database for testing higher level functions
+      emit_exact_table_names: false # if set to 'true' then 'accounts' table -> Accounts struct (singular is better so keep 'false')
