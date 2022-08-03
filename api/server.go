@@ -18,6 +18,10 @@ func NewServer(store *db.Store) *Server {
 
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
+	router.GET("/accounts", server.listAccounts)
+	// should not exist as it should only be executed through transaction
+	router.PATCH("/accounts/:id", server.addAccountBalance)
+	router.DELETE("/accounts/:id", server.deleteAccount)
 
 	server.router = router
 	return server
