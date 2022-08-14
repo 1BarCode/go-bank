@@ -12,8 +12,10 @@ import (
 
 // createRandomAccount does not have the "Test" prefix in function name so it will not run as a test
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner: util.RandomOwner(),
+		Owner: user.Username,
 		Balance: util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
