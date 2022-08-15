@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	db "github.com/1BarCode/go-bank/db/sqlc"
 )
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
@@ -51,4 +53,20 @@ func RandomCurrency() string {
 // RandomEmail generates a random email
 func RandomEmail() string {
 	return fmt.Sprintf("%s@email.com", RandomString(6))
+}
+
+// RandomUser generates a random user
+func RandomUser() (user db.User, password string, err error) {
+	password = RandomString(6)
+
+	hashedPassword, err := HashPassword(password)
+
+	user = db.User{
+		Username: RandomOwner(),
+		HashedPassword: hashedPassword,
+		FullName: RandomOwner(),
+		Email: RandomEmail(),
+	}
+
+	return
 }
