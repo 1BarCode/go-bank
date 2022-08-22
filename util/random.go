@@ -70,3 +70,18 @@ func RandomUser() (user db.User, password string, err error) {
 
 	return
 }
+
+// func RandomUser() (user db.User, password string, hashedPassword string, err error) {
+// 	password = RandomString(6)
+
+// 	hashedPassword, err = HashPassword(password)
+
+// 	user = db.User{
+// 		Username: RandomOwner(),
+// 		HashedPassword: hashedPassword,
+// 		FullName: RandomOwner(),
+// 		Email: RandomEmail(),
+// 	}
+
+// 	return
+// }

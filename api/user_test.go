@@ -3,9 +3,11 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	mockdb "github.com/1BarCode/go-bank/db/mock"
@@ -16,12 +18,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type eqCreateUserParamsMatcher struct {
+	arg db.CreateUserParams
+	password string
+}
+
+func (e eqCreateUserParamsMatcher) Matches(x interface{}) bool {
+	arg, ok := x.(db.CreateUserParams)
+	if !ok {
+		return false
+	}
+
+	err := util.CheckPassword(e.password, arg.HashedPassword)
+	if err != nil {
+		return false
+	}
+	e.arg.HashedPassword = arg.HashedPassword
+	return reflect.DeepEqual(e.arg, arg)
+
+	// return reflect.DeepEqual(e.x, x)
+}
+
+func (e eqCreateUserParamsMatcher) String() string {
+	return fmt.Sprintf("matches arg %v and password %v", e.arg, e.password)
+}
+
+func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher {
+	return eqCreateUserParamsMatcher{arg, password}
+}
+
 func TestCreateUserAPI(t *testing.T) {
 	user, password, err := util.RandomUser()
 	require.NoError(t, err)
 
 
-	// account := randomAccount(user)
 
 	testCases := []struct{
 		name			string
@@ -39,14 +69,14 @@ func TestCreateUserAPI(t *testing.T) {
 			} ,
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
-				// arg := db.CreateAccountParams{
-				// 	Owner: account.Owner,
-				// 	Currency: account.Currency,
-				// 	Balance: 0,
-				// }
+				arg := db.CreateUserParams{
+					Username: user.Username,
+					FullName: user.FullName,
+					Email: user.Email,
+				}
 
 				store.EXPECT().
-					CreateUser(gomock.Any(), gomock.Eq(arg)).
+					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
 					Times(1).
 					Return(user, nil)
 			},
@@ -56,42 +86,7 @@ func TestCreateUserAPI(t *testing.T) {
 				requireBodyMatchUser(t, recorder.Body, user)
 			},
 		},
-		// {
-		// 	name: "InternalError",
-		// 	body: gin.H{
-		// 		"owner": account.Owner,
-		// 		"currency": account.Currency,
-		// 	} ,
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		// build stubs
 		
-		// 		store.EXPECT().
-		// 			CreateAccount(gomock.Any(), gomock.Any()).
-		// 			Times(1).
-		// 			Return(db.Account{}, sql.ErrConnDone) // should match with return signature of GetAccount method
-		// 	},
-		// 	checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-		// 		// check response and body
-		// 		require.Equal(t, http.StatusInternalServerError, recorder.Code)
-		// 	},
-		// },
-		// {
-		// 	name: "InvalidCurrency",
-		// 	body: gin.H{
-		// 		"owner": account.Owner,
-		// 		"currency": "invalid",
-		// 	} ,
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		// build stubs
-		// 		store.EXPECT().
-		// 			CreateAccount(gomock.Any(), gomock.Any()).
-		// 			Times(0)  // should match with return signature of GetAccount method
-		// 	},
-		// 	checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-		// 		// check response and body
-		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
-		// 	},
-		// },
 	}
 
 	for i := range testCases {
