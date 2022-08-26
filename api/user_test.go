@@ -51,7 +51,8 @@ func TestCreateUserAPI(t *testing.T) {
 	user, password, err := util.RandomUser()
 	require.NoError(t, err)
 
-
+	// hashedPassword, err := util.HashPassword(password)
+	// require.NoError(t, err)
 
 	testCases := []struct{
 		name			string
@@ -73,9 +74,11 @@ func TestCreateUserAPI(t *testing.T) {
 					Username: user.Username,
 					FullName: user.FullName,
 					Email: user.Email,
+					// HashedPassword: hashedPassword,
 				}
 
 				store.EXPECT().
+					// CreateUser(gomock.Any(), gomock.Eq(arg)).
 					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
 					Times(1).
 					Return(user, nil)
@@ -126,5 +129,9 @@ func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	var gotUser db.User
 	err = json.Unmarshal(data, &gotUser)
 	require.NoError(t, err)
-	require.Equal(t, user, gotUser)
+	// require.Equal(t, user, gotUser)
+	require.Equal(t, user.Username, gotUser.Username)
+	require.Equal(t, user.FullName, gotUser.FullName)
+	require.Equal(t, user.Email, gotUser.Email)
+	require.Empty(t, gotUser.HashedPassword)
 }
